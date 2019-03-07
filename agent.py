@@ -40,7 +40,9 @@ class A3CAgent:
             self.model.load_state_dict(shared_model.state_dict())
 
     def eval_at_state(self):
-        extra_state = [1. if t in self.episode.remaining_targets else 0. for t in self.episode.targets]
+        episode_actions_taken = set([a['action'] for a in self.episode.actions_taken])
+        extra_state = [1. if 'Seen'+t in episode_actions_taken else 0.
+                       for t in self.episode.targets]
         extra_state = torch.tensor(extra_state).unsqueeze(0)
         if self.gpu_id >= 0:
             with torch.cuda.device(self.gpu_id):
