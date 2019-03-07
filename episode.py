@@ -3,7 +3,7 @@ import random
 import torch
 import time
 import sys
-from constants import GOAL_SUCCESS_REWARD, STEP_PENALTY, BASIC_ACTIONS
+from constants import GOAL_SUCCESS_REWARD, INTERMED_FIND_REWARD, STEP_PENALTY, BASIC_ACTIONS
 from environment import Environment
 from utils.net_util import gpuify
 
@@ -66,13 +66,19 @@ class Episode:
         done = False
         action_was_successful = self.environment.last_action_success
 
-        if action['action'] == 'Done':
-            done = True
+        if action['action'].startswith('Seen'):
             objects = self._env.last_event.metadata['objects']
             visible_objects = [o['objectType'] for o in objects if o['visible']]
-            if self.target in visible_objects:
-                reward += GOAL_SUCCESS_REWARD
-                self.success = True
+            
+            seen_obj_name = action['action'][4:]
+            if seen_obj_name in self.remaining_targets and seen_obj_name in visible_objects:
+                self.remaining_targets.remove(seen_obj_name)
+                if len(self.remaining_targets) == 0:
+                    done = True
+                    reward += GOAL_SUCCESS_REWARD
+                    self.success = True
+                else:
+                    reward += INTERMED_FIND_REWARD
 
         return reward, done, action_was_successful
 
@@ -95,7 +101,8 @@ class Episode:
             self._env.reset(scene)
 
         # For now, single target.
-        self.target = 'Tomato'
+        self.targets = ['Tomato', 'Bowl']
+        self.remaining_targets = list(self.targets)
         self.success = False
         self.cur_scene = scene
         self.actions_taken = []

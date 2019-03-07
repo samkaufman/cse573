@@ -120,7 +120,7 @@ class Environment:
                     # Go back to previous state.
                     self.teleport_agent_to(curr_state.x, curr_state.y, curr_state.z, curr_state.rotation, curr_state.horizon)
                     self.last_event.metadata['lastActionSuccess'] = False
-        elif action_dict['action'] != 'Done':
+        elif not action_dict['action'].startswith('Seen'):
             return self.controller.step(action_dict)
 
     def teleport_agent_to(self, x, y, z, rotation, horizon):
