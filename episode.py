@@ -15,6 +15,8 @@ class Episode:
 
         self._env = None
 
+        self.fail_penalty = args.failed_action_penalty
+
         self.gpu_id = gpu_id
         self.strict_done = strict_done
         self.task_data = None
@@ -65,6 +67,8 @@ class Episode:
         reward = STEP_PENALTY 
         done = False
         action_was_successful = self.environment.last_action_success
+        if not action_was_successful:
+            reward += self.fail_penalty
 
         if action['action'].startswith('Seen'):
             objects = self._env.last_event.metadata['objects']
@@ -101,6 +105,7 @@ class Episode:
             self._env.reset(scene)
 
         # For now, single target.
+        self.fail_penalty = args.failed_action_penalty
         self.targets = ['Tomato', 'Bowl']
         self.remaining_targets = list(self.targets)
         self.success = False

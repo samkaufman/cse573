@@ -9,6 +9,12 @@ def parse_arguments():
         metavar='LR',
         help='learning rate (default: 0.0001)')
     parser.add_argument(
+            '--failed_action_penalty',
+            type=float,
+            default=0.0,
+            metavar='PEN',
+            help='failed action penalty (default: 0)')
+    parser.add_argument(
         '--gamma',
         type=float,
         default=0.99,
