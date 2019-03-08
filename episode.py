@@ -67,7 +67,6 @@ class Episode:
     def judge(self, action):
         """ Judge the last event. """
         # immediate reward
-        print("judge")
         reward = STEP_PENALTY 
         done = False
         action_was_successful = self.environment.last_action_success
@@ -83,7 +82,6 @@ class Episode:
 
         horizon = self._env.last_event.metadata['agent']['cameraHorizon']
         if not (horizon == 30 or horizon == 0):
-            print("up")
             reward += self.lookup_penalty
 
         if action['action'].startswith('Seen'):
