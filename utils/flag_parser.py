@@ -3,6 +3,12 @@ import argparse
 def parse_arguments():
     parser = argparse.ArgumentParser(description='A3C')
     parser.add_argument(
+        '--prepend_log',
+        type=str,
+        default='',
+        metavar='PL',
+        help='prepend log')
+    parser.add_argument(
         '--lr',
         type=float,
         default=0.0001,

@@ -45,7 +45,7 @@ def main():
 
     if args.enable_logging:
         from tensorboardX import SummaryWriter
-        log_dir =  'runs/' + args.title + '-' + local_start_time_str
+        log_dir =  'runs/' + args.prepend_log + args.title + '-' + local_start_time_str
         log_writer = SummaryWriter(log_dir=log_dir)
 
     if args.gpu_ids == -1:
@@ -64,7 +64,7 @@ def main():
     optimizer.share_memory()
 
     if (args.resume):
-        shared_model.load_state_dict(torch.load('./models/last_model'))
+        shared_model.load_state_dict(torch.load('./models/{}_last_model'.format(args.prepend_log)))
     elif (args.load_model!=''):
         shared_model.load_state_dict(torch.load(args.load_model))
 
@@ -100,7 +100,7 @@ def main():
             train_total_ep += 1
             n_frames += train_result["ep_length"]
             if train_total_ep % 100 == 0:
-                torch.save(shared_model.state_dict(), './models/model_{}'.format(train_total_ep))
+                torch.save(shared_model.state_dict(), './models/{}_model_{}'.format(args.prepend_log, train_total_ep))
             if args.enable_logging and train_total_ep % train_thin == 0:
                 log_writer.add_scalar("n_frames", n_frames, train_total_ep)
                 tracked_means = train_scalars.pop_and_reset()
@@ -121,7 +121,7 @@ def main():
             time.sleep(0.1)
             p.join()
 
-    torch.save(shared_model.state_dict(), './models/last_model')
+    torch.save(shared_model.state_dict(), './models/{}_last_model'.format(args.prepend_log))
 
 
 if __name__ == '__main__':
