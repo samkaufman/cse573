@@ -51,6 +51,12 @@ class Model(torch.nn.Module):
         self.conv2.weight.data.mul_(relu_gain)
         self.conv3.weight.data.mul_(relu_gain)
         self.conv4.weight.data.mul_(relu_gain)
+        self.augmented_linear.weight.data = norm_col_init(
+            self.augmented_linear.weight.data, 0.01)
+        self.augmented_linear.bias.data.fill_(0)
+        self.emb_and_aug_linear.weight.data = norm_col_init(
+            self.emb_and_aug_linear.weight.data, 0.01)
+        self.emb_and_aug_linear.bias.data.fill_(0)
         self.actor_linear.weight.data = norm_col_init(
             self.actor_linear.weight.data, 0.01)
         self.actor_linear.bias.data.fill_(0)
@@ -69,9 +75,9 @@ class Model(torch.nn.Module):
         x = F.relu(self.maxp3(self.conv3(x)))
         x = F.relu(self.maxp4(self.conv4(x)))
         x = x.view(x.size(0), -1)
-        additional_score = self.augmented_linear(extra_state)
+        additional_score = F.relu(self.augmented_linear(extra_state))
         catcated = torch.cat((x, additional_score), dim=1)
-        x = self.emb_and_aug_linear(catcated)
+        x = F.relu(self.emb_and_aug_linear(catcated))
         return x
 
     def a3clstm(self, x, hidden):
