@@ -27,6 +27,12 @@ def parse_arguments():
             metavar='ROT_PEN',
             help='coeff. for consecutive rotation penalty (default: 0)')
     parser.add_argument(
+            '--lookup_penalty',
+            type=float,
+            default=0.0,
+            metavar='L',
+            help='lookup penalty (default: 0)')
+    parser.add_argument(
         '--gamma',
         type=float,
         default=0.99,
