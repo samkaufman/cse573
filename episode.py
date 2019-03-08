@@ -16,6 +16,7 @@ class Episode:
         self._env = None
 
         self.fail_penalty = args.failed_action_penalty
+        self.lookup_penalty = args.lookup_penalty
 
         self.gpu_id = gpu_id
         self.strict_done = strict_done
@@ -70,6 +71,9 @@ class Episode:
         if not action_was_successful:
             reward += self.fail_penalty
 
+        if action['action'] == 'LookUp':
+            reward += self.lookup_penalty
+
         if action['action'].startswith('Seen'):
             objects = self._env.last_event.metadata['objects']
             visible_objects = [o['objectType'] for o in objects if o['visible']]
@@ -106,6 +110,7 @@ class Episode:
 
         # For now, single target.
         self.fail_penalty = args.failed_action_penalty
+        self.lookup_penalty = args.lookup_penalty
         self.targets = ['Tomato', 'Bowl']
         self.remaining_targets = list(self.targets)
         self.success = False
