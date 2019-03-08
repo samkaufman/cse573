@@ -21,6 +21,12 @@ def parse_arguments():
             metavar='PEN',
             help='failed action penalty (default: 0)')
     parser.add_argument(
+            '--rotate_penalty',
+            type=float,
+            default=0.0,
+            metavar='ROT_PEN',
+            help='coeff. for consecutive rotation penalty (default: 0)')
+    parser.add_argument(
         '--gamma',
         type=float,
         default=0.99,

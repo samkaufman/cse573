@@ -2,6 +2,7 @@
 import random
 import torch
 import time
+import math
 import sys
 from constants import GOAL_SUCCESS_REWARD, INTERMED_FIND_REWARD, STEP_PENALTY, BASIC_ACTIONS
 from environment import Environment
@@ -16,6 +17,7 @@ class Episode:
         self._env = None
 
         self.fail_penalty = args.failed_action_penalty
+        self.consec_rotate_penalty_coeff = args.rotate_penalty
 
         self.gpu_id = gpu_id
         self.strict_done = strict_done
@@ -67,8 +69,15 @@ class Episode:
         reward = STEP_PENALTY 
         done = False
         action_was_successful = self.environment.last_action_success
+        
         if not action_was_successful:
             reward += self.fail_penalty
+
+        if action['action'] in ('RotateLeft', 'RotateRight'):
+            self.consecutive_rotates += 1
+            reward -= self.consec_rotate_penalty_coeff * math.exp(self.consecutive_rotates)
+        else:
+            self.consecutive_rotates = 0
 
         if action['action'].startswith('Seen'):
             objects = self._env.last_event.metadata['objects']
@@ -111,5 +120,6 @@ class Episode:
         self.success = False
         self.cur_scene = scene
         self.actions_taken = []
+        self.consecutive_rotates = 0
         
         return True
