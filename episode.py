@@ -52,9 +52,7 @@ class Episode:
 
     def action_step(self, action):
         self.environment.step(action)
-        reward, terminal, action_was_successful = self.judge(action)
-
-        return reward, terminal, action_was_successful
+        return self.judge(action)
 
     def slow_replay(self, delay=0.2):
         # Reset the episode
@@ -70,19 +68,27 @@ class Episode:
         reward = STEP_PENALTY 
         done = False
         action_was_successful = self.environment.last_action_success
+        shaped_rewards = {}
         
+        shaped_rewards['fail_penalty'] = 0.
         if not action_was_successful:
+            shaped_rewards['fail_penalty'] = self.fail_penalty
             reward += self.fail_penalty
 
         if action['action'] in ('RotateLeft', 'RotateRight'):
             self.consecutive_rotates += 1
-            reward -= self.consec_rotate_penalty_coeff * math.exp(self.consecutive_rotates)
+            consec_penalty = -self.consec_rotate_penalty_coeff * math.exp(self.consecutive_rotates)
+            shaped_rewards['consec_penalty'] = consec_penalty
+            reward += consec_penalty
         else:
+            shaped_rewards['consec_penalty'] = 0.
             self.consecutive_rotates = 0
 
         horizon = self._env.last_event.metadata['agent']['cameraHorizon']
+        shaped_rewards['lookup_penalty'] = 0.
         if not (horizon == 30 or horizon == 0):
             reward += self.lookup_penalty
+            shaped_rewards['lookup_penalty'] = self.lookup_penalty
 
         if action['action'].startswith('Seen'):
             objects = self._env.last_event.metadata['objects']
@@ -98,7 +104,7 @@ class Episode:
                 else:
                     reward += INTERMED_FIND_REWARD
 
-        return reward, done, action_was_successful
+        return reward, done, action_was_successful, shaped_rewards
 
     def new_episode(self, args, scene):
         

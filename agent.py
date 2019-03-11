@@ -1,6 +1,7 @@
 """ Base class for all A3C Agents. """
 from __future__ import division
 
+from collections import defaultdict
 import torch
 import random #TODO: This random is not seeded
 import torch.nn.functional as F
@@ -26,6 +27,7 @@ class A3CAgent:
         self.reward = 0
         self.hidden = None
         self.actions = []
+        self.shaped_rewards = {}
         self.verbose = args.verbose
         self.max_episode_length = args.max_episode_length
         self.hidden_state_sz = args.hidden_state_sz
@@ -120,7 +122,7 @@ class A3CAgent:
         entropy = -(log_prob * prob).sum(1)
         log_prob = log_prob.gather(1, Variable(action))
 
-        self.reward, self.done, self.info = self.episode.step(action[0, 0])
+        self.reward, self.done, self.info, self.shaped_rewards = self.episode.step(action[0, 0])
 
         self.entropies.append(entropy)
         self.values.append(model_output.value)
@@ -154,6 +156,7 @@ class A3CAgent:
         self.entropies = []
         self.actions = []
         self.reward = 0
+        self.shaped_rewards.clear()
 
     def preprocess_frame(self, frame):
         """ Preprocess the current frame for input into the model. """

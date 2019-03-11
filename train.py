@@ -137,8 +137,11 @@ def log_episode(player, res_queue, **kwargs):
         'ep_length': player.eps_len,
         'success': int(player.success)
     }
-
     results.update(**kwargs)
+    assert len(player.shaped_rewards)
+    for k, v in player.shaped_rewards.items():
+        assert isinstance(v, (float, int))
+        results[k] = v
     res_queue.put(results)
 
 def reset_player(player):
