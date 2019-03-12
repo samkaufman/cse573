@@ -4,6 +4,7 @@ import torch
 import time
 import math
 import sys
+from itertools import permutations
 from constants import GOAL_SUCCESS_REWARD, INTERMED_FIND_REWARD, STEP_PENALTY, BASIC_ACTIONS
 from environment import Environment
 from utils.net_util import gpuify
@@ -19,6 +20,7 @@ class Episode:
         self.fail_penalty = args.failed_action_penalty
         self.consec_rotate_penalty_coeff = args.rotate_penalty
         self.lookup_penalty = args.lookup_penalty
+        self.distance_penalty_coeff = args.distance_penalty
 
         self.gpu_id = gpu_id
         self.strict_done = strict_done
@@ -61,6 +63,26 @@ class Episode:
         for action in self.actions_taken:
             self.action_step(action)
             time.sleep(delay)
+
+    def _target_path_distance(self):
+        tgt_positions = [o['position'] for o in self._env.last_event.metadata['objects']
+                         if o['objectType'] in self.remaining_targets]
+        if len(tgt_positions) == 0:
+            return 0.
+
+        # This is very slow, but since we only have two objects at the moment, we'll
+        # put up with it
+        best_distance = None
+        for tgt_path in permutations(tgt_positions, len(tgt_positions)):
+            path = [self._env.last_event.metadata['agent']['position']] + list(tgt_path)
+            total_distance = 0.
+            for i in range(len(path) - 1):
+                a, b = path[i], path[i + 1]
+                total_distance += math.sqrt((a['x'] - b['x']) ** 2 + (a['y'] - b['y']) ** 2)
+            if best_distance is None or total_distance < best_distance:
+                best_distance = total_distance
+        return best_distance
+
     
     def judge(self, action):
         """ Judge the last event. """
@@ -74,6 +96,9 @@ class Episode:
         if not action_was_successful:
             shaped_rewards['fail_penalty'] = self.fail_penalty
             reward += self.fail_penalty
+
+        shaped_rewards['distance_penalty'] = self.distance_penalty_coeff * self._target_path_distance()
+        reward += shaped_rewards['distance_penalty']
 
         if action['action'] in ('RotateLeft', 'RotateRight'):
             self.consecutive_rotates += 1
