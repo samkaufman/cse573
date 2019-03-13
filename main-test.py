@@ -83,7 +83,8 @@ def main():
         p = mp.Process(target=train.test, args=(
             rank, args, create_shared_model,
             shared_model, init_agent,
-            test_res_queue, end_flag))
+            test_res_queue, end_flag),
+            kwargs={'demo_mode': args.demo})
         p.start()
         processes.append(p)
         print('* Agent created.')

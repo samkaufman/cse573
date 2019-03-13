@@ -239,5 +239,10 @@ def parse_arguments():
         action='store_true',
         default=False,
         help='whether or not to resume from ./model/last_model')
+    parser.add_argument(
+        '--demo',
+        action='store_true',
+        default=False,
+        help='slow things waaaaaay down')
 
     return parser.parse_args()

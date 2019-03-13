@@ -76,7 +76,7 @@ def train(rank, args, create_shared_model, shared_model,
     player.exit()
 
 def test(rank, args, create_shared_model, shared_model, 
-          initialize_agent, res_queue, end_flag):
+          initialize_agent, res_queue, end_flag, demo_mode=False):
     """ Training loop for each agent. """
 
     random.seed(args.seed + rank)
@@ -111,6 +111,8 @@ def test(rank, args, create_shared_model, shared_model,
                 total_reward = total_reward + player.reward
                 if player.done:
                     break
+                if demo_mode:
+                    time.sleep(0.2)
 
 
             # Clear actions and repackage hidden.
